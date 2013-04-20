@@ -1,0 +1,524 @@
+{
+  "fileTypes": [ "blade" ],
+  "name": "JS Blade",
+  "patterns": [
+    {
+      "match": "^(!!!|doctype)(\\s*[a-zA-Z0-9-_]+)?",
+      "name": "comment.other.doctype.blade",
+      "comment": "Doctype declaration."
+    },
+    {
+      "begin": "^(\\s*)//-",
+      "end": "^(?!(\\1\\s)|\\s*$)",
+      "name": "comment.unbuffered.block.blade",
+      "comment": "Unbuffered (blade-only) comments."
+    },
+    {
+      "begin": "^(\\s*)//",
+      "end": "^(?!(\\1\\s)|\\s*$)",
+      "name": "string.comment.buffered.block.blade",
+      "comment": "Buffered (html) comments.",
+      "patterns": [
+        {
+          "captures": { "1": { "name": "invalid.illegal.comment.comment.block.blade" } },
+          "match": "^\\s*(//)(?!-)",
+          "name": "string.comment.buffered.block.blade",
+          "comment": "Buffered comments inside buffered comments will generate invalid html."
+        }
+      ]
+    },
+    {
+      "begin": "^(\\s*)(script)(?=[.#(\\s])",
+      "beginCaptures": { "2": { "name": "entity.name.tag.script.blade" } },
+      "end": "^(?!(\\1\\s)|\\s*$)",
+      "name": "source.script.blade",
+      "comment": "Script tag with JavaScript code.",
+      "patterns": [
+        {
+          "begin": "\\G(?=\\()",
+          "end": "$",
+          "name": "stuff.tag.script.blade",
+          "patterns": [{ "include": "#tag_attributes" }]
+        },
+        {
+          "begin": "\\G(?=[.#])",
+          "end": "$",
+          "name": "stuff.tag.script.blade",
+          "patterns": [{ "include": "#complete_tag" }]
+        },
+        { "include": "source.js" }
+      ]
+    },
+    {
+      "begin": "^(\\s*)(style)(?=[.#(\\s])",
+      "beginCaptures": { "2": { "name": "entity.name.tag.script.blade" } },
+      "end": "^(?!(\\1\\s)|\\s*$)",
+      "name": "source.style.blade",
+      "comment": "Style tag with CSS code.",
+      "patterns": [
+        {
+          "begin": "\\G(?=\\()",
+          "end": "$",
+          "name": "stuff.tag.style.blade",
+          "patterns": [{ "include": "#tag_attributes" }]
+        },
+        {
+          "begin": "\\G(?=[.#])",
+          "end": "$",
+          "name": "stuff.tag.style.blade",
+          "patterns": [{ "include": "#complete_tag" }]
+        },
+        { "include": "source.css" }
+      ]
+    },
+    {
+      "begin": "^(\\s*):(markdown)(?=\\(|$)$",
+      "beginCaptures": {
+        "2": { "name": "constant.language.name.markdown.filter.blade" }
+      },
+      "end": "^(?!(\\1\\s)|\\s*$)",
+      "name": "text.markdown.filter.blade",
+      "patterns": [
+        { "include": "#filter_args" },
+        { "include": "text.html.markdown" }
+      ]
+    },
+    {
+      "begin": "^(\\s*):(sass)(?=\\(|$)$",
+      "beginCaptures": { "2": { "name": "constant.language.name.sass.filter.blade" } },
+      "end": "^(?!(\\1\\s)|\\s*$)",
+      "name": "source.sass.filter.blade",
+      "patterns": [
+        { "include": "#filter_args" },
+        { "include": "source.sass" }
+      ]
+    },
+    {
+      "begin": "^(\\s*):(less)(?=\\(|$)$",
+      "beginCaptures": { "2": { "name": "constant.language.name.less.filter.blade" } },
+      "end": "^(?!(\\1\\s)|\\s*$)",
+      "name": "source.less.filter.blade",
+      "patterns": [
+        { "include": "#filter_args" },
+        { "include": "source.less" }
+      ]
+    },
+    {
+      "begin": "^(\\s*):(stylus)(?=\\(|$)$",
+      "beginCaptures": { "2": { "name": "constant.language.name.stylus.filter.blade" } },
+      "end": "^(?!(\\1\\s)|\\s*$)",
+      "name": "source.stylus.filter.blade",
+      "patterns": [
+        { "include": "#filter_args" },
+        { "include": "source.stylus" }
+      ]
+    },
+    {
+      "begin": "^(\\s*):(coffeescript)(?=\\(|$)",
+      "beginCaptures": { "2": { "name": "constant.language.name.coffeescript.filter.blade" } },
+      "end": "^(?!(\\1\\s)|\\s*$)",
+      "name": "source.coffeescript.filter.blade",
+      "patterns": [
+        { "include": "#filter_args" },
+        { "include": "source.coffee" }
+      ]
+    },
+    {
+      "begin": "^(\\s*)((:(?=.))|(:$))",
+      "beginCaptures": { "4": { "name": "invalid.illegal.empty.generic.filter.blade" } },
+      "end": "^(?!(\\1\\s)|\\s*$)",
+      "name": "text.generic.filter.blade",
+      "comment": "Generic Jade filter.",
+      "patterns": [
+        {
+          "begin": "\\G(?<=:)(?=.)",
+          "end": "$",
+          "name": "name.generic.filter.blade",
+          "patterns": [
+            {
+              "match": "\\G\\(",
+              "name": "invalid.illegal.name.generic.filter.blade"
+            },
+            {
+              "match": "\\w",
+              "name": "constant.language.name.generic.filter.blade"
+            },
+            { "include": "#filter_args" },
+            {
+              "match": "\\W",
+              "name": "invalid.illegal.name.generic.filter.blade"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "begin": "^(\\s*)(?=[\\w.#].*?\\.$)(?=(?:(?:(?:(?:(?:#[\\w-]+)|(?:\\.[\\w-]+))|(?:(?:[#!]\\{[^}]*\\})|(?:\\w(?:(?:[\\w:-]+[\\w-])|(?:[\\w-]*)))))(?:(?:#[\\w-]+)|(?:\\.[\\w-]+)|(?:\\((?:[^()\\'\\\"]*(?:(?:\\'(?:[^\\']|(?:(?<!\\\\)\\\\\\'))*\\')|(?:\\\"(?:[^\\\"]|(?:(?<!\\\\)\\\\\\\"))*\\\")))*[^()]*\\))*)*)(?:(?:(?::\\s+)|(?<=\\)))(?:(?:(?:(?:#[\\w-]+)|(?:\\.[\\w-]+))|(?:(?:[#!]\\{[^}]*\\})|(?:\\w(?:(?:[\\w:-]+[\\w-])|(?:[\\w-]*)))))(?:(?:#[\\w-]+)|(?:\\.[\\w-]+)|(?:\\((?:[^()\\'\\\"]*(?:(?:\\'(?:[^\\']|(?:(?<!\\\\)\\\\\\'))*\\')|(?:\\\"(?:[^\\\"]|(?:(?<!\\\\)\\\\\\\"))*\\\")))*[^()]*\\))*)*))*)\\.$)(?:(?:(#[\\w-]+)|(\\.[\\w-]+))|((?:[#!]\\{[^}]*\\})|(?:\\w(?:(?:[\\w:-]+[\\w-])|(?:[\\w-]*)))))",
+      "beginCaptures": {
+        "2": { "name": "constant.id.tag.blade" },
+        "3": { "name": "string.name.classes.tag.blade" },
+        "4": { "name": "entity.name.tag.blade" }
+      },
+      "end": "^(?!(\\1\\s)|\\s*$)",
+      "name": "text.block.dot.tag.blade",
+      "comment": "Dot text block.",
+      "comment": "Generated from dot_block_tag.py",
+      "patterns": [
+        { "include": "#tag_attributes" },
+        { "include": "#complete_tag" },
+        {
+          "begin": "^(?=.)",
+          "end": "$",
+          "name": "text.block.blade",
+          "patterns": [
+            { "include": "#embedded_html" },
+            { "include": "#html_entity" },
+            { "include": "#interpolated_value" }
+          ]
+        }
+      ]
+    },
+    {
+      "begin": "^\\s*",
+      "end": "$",
+      "name": "tag.blade",
+      "comment": "All constructs that generally span a single line starting with any number of white-spaces.",
+      "patterns": [
+        { "include": "#blocks_and_includes" },
+        { "include": "#unbuffered_code" },
+        { "include": "#mixins" },
+        { "include": "#flow_control" },
+        { "include": "#case_conds" },
+        {
+          "begin": "\\|",
+          "end": "$",
+          "name": "text.block.pipe.blade",
+          "comment": "Tag pipe text line.",
+          "patterns": [
+            { "include": "#embedded_html" },
+            { "include": "#html_entity" },
+            { "include": "#interpolated_value" }
+          ]
+        },
+        { "include": "#printed_expression" },
+        {
+          "begin": "\\G((?=<)|[^\\w.#]|(\\.[^\\w-]))|(#[^\\{\\w-])",
+          "end": "$",
+          "name": "text.blade",
+          "comment": "Line starting with characters incompatible with tag name/id/class is standalone text.",
+          "patterns": [
+            { "include": "#embedded_html" },
+            { "include": "#html_entity" },
+            { "include": "#interpolated_value" }
+          ]
+        },
+        { "include": "#complete_tag" }
+      ]
+    }
+  ],
+  "repository": {
+    "filter_args": {
+      "begin": "\\G(\\()",
+      "captures": {
+        "1": { "name": "meta.args.filter.blade" },
+        "2": { "name": "invalid.illegal.extra.args.filter.blade" }
+      },
+      "end": "(\\))(.*?$)",
+      "name": "args.filter.blade",
+      "patterns": [
+        {
+          "begin": "([^\\s(),=]+)(=?)",
+          "beginCaptures": {
+            "1": { "name": "entity.other.attribute-name.tag.blade" },
+            "2": { "name": "punctuation.separator.key-value.blade" }
+          },
+          "end": "((?=\\))|,|$)",
+          "name": "attributes.tag.blade",
+          "contentName": "string.value.args.filter.blade",
+          "patterns": [{ "include": "#filter_args_paren" }]
+        }
+      ]
+    },
+    "filter_args_paren": {
+      "begin": "\\(",
+      "end": "\\)|$",
+      "patterns": [
+        { "include": "#filter_args_paren" }
+      ]
+    },
+    "blocks_and_includes": {
+      "captures": {
+        "1": { "name": "storage.type.import.include.blade" },
+        "4": { "name": "variable.control.import.include.blade" }
+      },
+      "match": "(extends|include|yield|append|prepend|block( (append|prepend))?)\\s+(.*)$",
+      "name": "meta.first-class.blade",
+      "comment": "Template blocks and includes."
+    },
+    "unbuffered_code": {
+      "begin": "(-|(([a-zA-Z0-9_]+)\\s+=))",
+      "beginCaptures": { "3": { "name": "variable.parameter.javascript.embedded.blade" } },
+      "end": "$",
+      "name": "javascript.embedded.blade",
+      "comment": "Non-buffered executable code. Ex.:",
+      "comment": "- var name = 'value';",
+      "comment": "name = function() {}",
+      "patterns": [{ "include": "source.js" }]
+    },
+    "mixins": {
+      "begin": "(((mixin\\s+)|\\+)([\\w-]+))\\s*",
+      "beginCaptures": {
+        "2": { "name": "storage.type.function.blade" },
+        "4": { "name": "entity.name.function.blade" }
+      },
+      "end": "$",
+      "name": "meta.mixin.blade",
+      "comment": "Mixin declaration and use, including the new '+' syntax.",
+      "patterns": [
+        {
+          "begin": "",
+          "end": "$",
+          "name": "args.mixin.blade",
+          "patterns": [{ "include": "source.js" }]
+        }
+      ]
+    },
+    "flow_control": {
+      "begin": "(for|if|else if|else|each|until|while|unless|case)(\\s+|$)",
+      "captures": { "1": { "name": "storage.type.function.blade" } },
+      "end": "$",
+      "name": "meta.control.flow.blade",
+      "comment": "Jade control flow.",
+      "patterns": [
+        {
+          "begin": "",
+          "end": "$",
+          "name": "js.embedded.control.flow.blade",
+          "patterns": [{ "include": "source.js" }]
+        }
+      ]
+    },
+    "case_when_paren": {
+      "begin": "\\(",
+      "end": "\\)",
+      "name": "js.when.control.flow.blade",
+      "patterns": [
+        { "include": "#case_when_paren" },
+        {
+          "match": ":",
+          "name": "invalid.illegal.name.tag.blade"
+        },
+        { "include": "source.js" }
+      ]
+    },
+    "case_conds": {
+      "begin": "(default|when)((\\s+|(?=:))|$)",
+      "captures": { "1": { "name": "storage.type.function.blade" } },
+      "end": "$",
+      "name": "meta.control.flow.blade",
+      "comment": "Jade case conditionals.",
+      "patterns": [
+        {
+          "begin": "\\G(?!:)",
+          "end": "(?=:\\s+)|$",
+          "name": "js.embedded.control.flow.blade",
+          "patterns": [
+            { "include": "#case_when_paren" },
+            { "include": "source.js" }
+          ]
+        },
+        {
+          "begin": ":\\s+",
+          "end": "$",
+          "name": "tag.case.control.flow.blade",
+          "patterns": [
+            { "include": "#complete_tag" }
+          ]
+        }
+      ]
+    },
+    "complete_tag": {
+      "begin": "(?=[\\w.#])|(:\\s*)",
+      "end": "(\\.?$)|(?=:.)",
+      "name": "complete_tag.blade",
+      "patterns": [
+        { "include": "#blocks_and_includes" },
+        { "include": "#unbuffered_code" },
+        { "include": "#mixins" },
+        { "include": "#flow_control" },
+        {
+          "match": "(?<=:)\\w.*$",
+          "name": "invalid.illegal.name.tag.blade"
+        },
+        { "include": "#tag_name" },
+        { "include": "#tag_id" },
+        { "include": "#tag_classes" },
+        { "include": "#tag_attributes" },
+        {
+          "match": "((\\.)\\s+$)|((:)\\s*$)",
+          "captures": {
+            "2": { "name": "invalid.illegal.end.tag.blade" },
+            "4": { "name": "invalid.illegal.end.tag.blade" }
+          }
+        },
+        { "include": "#printed_expression" },
+        { "include": "#tag_text" }
+      ]
+    },
+    "tag_name": {
+      "begin": "([#!]\\{(?=.*?\\}))|(\\w(([\\w:-]+[\\w-])|([\\w-]*)))",
+      "end": "(\\G(?<!\\5[^\\w-]))|\\}|$",
+      "name": "entity.name.tag.blade",
+      "patterns": [
+        {
+          "begin": "\\G(?<=\\{)",
+          "end": "(?=\\})",
+          "name": "entity.name.tag.blade",
+          "patterns": [
+            {
+              "match": "{",
+              "name": "invalid.illegal.tag.blade"
+            },
+            { "include": "source.js" }
+          ]
+        }
+      ]
+    },
+    "tag_id": {
+      "match": "#[\\w-]+",
+      "name": "constant.id.tag.blade"
+    },
+    "tag_classes": {
+      "match": "\\.[\\w-]+",
+      "name": "string.name.classes.tag.blade"
+    },
+    "tag_attributes": {
+      "begin": "(\\()",
+      "captures": { "1": { "name": "constant.name.attribute.tag.blade" } },
+      "end": "(\\))",
+      "name": "attibutes.tag.blade",
+      "patterns": [
+        {
+          "match": "([^\\s(),=]+)\\s*((?=\\))|,|$)",
+          "captures": { "1": { "name": "entity.other.attribute-name.tag.blade" } },
+          "name": "attribues.tag.blade"
+        },
+        {
+          "begin": "([^\\s(),=]*[^\\s(),=!])\\s*(!?\\=)",
+          "beginCaptures": {
+            "1": { "name": "entity.other.attribute-name.tag.blade" },
+            "2": { "name": "punctuation.separator.key-value.blade" }
+          },
+          "end": "((?=\\))|,|$)",
+          "name": "attributes.tag.blade",
+          "patterns": [
+            { "include": "#tag_attribute_value_paren" },
+            { "include": "#tag_attribute_value_brackets" },
+            { "include": "#tag_attribute_value_braces" },
+            { "include": "#string" },
+            { "include": "source.js" }
+          ]
+        }
+      ]
+    },
+    "tag_attribute_value_paren": {
+      "begin": "\\(",
+      "end": "\\)",
+      "name": "js.value.attribute.tag.blade",
+      "patterns": [
+        { "include": "#tag_attribute_value_paren" },
+        { "include": "#tag_attribute_value_brackets" },
+        { "include": "#tag_attribute_value_braces" },
+        { "include": "#string" },
+        { "include": "source.js" }
+      ]
+    },
+    "tag_attribute_value_brackets": {
+      "begin": "\\[",
+      "end": "\\]",
+      "name": "js.value.attribute.tag.blade",
+      "patterns": [
+        { "include": "#tag_attribute_value_paren" },
+        { "include": "#tag_attribute_value_brackets" },
+        { "include": "#tag_attribute_value_braces" },
+        { "include": "#string" },
+        { "include": "source.js" }
+      ]
+    },
+    "tag_attribute_value_braces": {
+      "begin": "\\{",
+      "end": "\\}",
+      "name": "js.value.attribute.tag.blade",
+      "patterns": [
+        { "include": "#tag_attribute_value_paren" },
+        { "include": "#tag_attribute_value_brackets" },
+        { "include": "#tag_attribute_value_braces" },
+        { "include": "#string" },
+        { "include": "source.js" }
+      ]
+    },
+    "tag_text": {
+      "begin": "(?=.)",
+      "end": "$",
+      "name": "text.blade",
+      "patterns": [
+        { "include": "#embedded_html" },
+        { "include": "#html_entity" },
+        { "include": "#interpolated_value" }
+      ]
+    },
+    "html_entity": {
+      "patterns": [
+        {
+          "match": "(&)([a-zA-Z0-9]+|#[0-9]+|#x[0-9a-fA-F]+)(;)",
+          "name": "constant.character.entity.html.text.blade"
+        },
+        {
+          "match": "[<>&]",
+          "name": "invalid.illegal.html_entity.text.blade"
+        }
+      ]
+    },
+    "interpolated_value": {
+      "begin": "(?<!\\\\)[#!]\\{(?=.*?\\})",
+      "end": "\\}",
+      "name": "string.interpolated.blade",
+      "patterns": [
+        {
+          "match": "{",
+          "name": "invalid.illegal.tag.blade"
+        },
+        { "include": "source.js" }
+      ]
+    },
+    "printed_expression": {
+      "begin": "(!?\\=)\\s*",
+      "captures": { "1": { "name": "constant" } },
+      "end": "$",
+      "patterns": [{ "include": "source.js" }]
+    },
+    "string": {
+      "begin": "(['\"])",
+      "end": "(?<!\\\\)\\1",
+      "name": "string.quoted.blade",
+      "patterns": [
+        {
+          "match": "\\\\((x[0-9a-fA-F]{2})|(u[0-9]{4})|.)",
+          "name": "constant.character.quoted.blade"
+        },
+        { "include": "#interpolated_value" }
+      ]
+    },
+    "embedded_html": {
+      "begin": "(?=<[^>]*>)",
+      "end": "$|(?=>)",
+      "name": "html",
+      "patterns": [
+        { "include": "text.html.basic" },
+        { "include": "#interpolated_value" }
+      ]
+    }
+  },
+  "scopeName": "source.blade",
+  "uuid": "eee6ba25-6ac2-4f7e-9c70-cddf2bd3448b"
+}
